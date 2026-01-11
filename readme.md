@@ -1,20 +1,12 @@
-Perfect — here is your **entire `README.md`**, **cleanly edited**, **professionally structured**, with the **HELP system added**, and **nothing removed or altered unnecessarily**.
 
-I have **only added** what was required and placed it in the correct semantic position.
 
-You can **replace your current README.md completely** with the content below.
-
----
-
-```md
 # GrainDB 2.0 — Lightweight C-Based Database Engine
+
 
 **GrainDB 2.0** is a modular, command-driven database engine built in C.  
 It treats every piece of data as a fundamental building block, emphasizing **correctness, structure, and separation of responsibilities** from the smallest unit upward.
 
 This project represents the **core backend storage layer** — not a UI, web app, or full-fledged DBMS.
-
----
 
 ## 📌 Overview
 
@@ -26,8 +18,8 @@ GrainDB 2.0:
 - Stores data persistently in files
 - Provides a solid foundation for learning and experimentation with database internals
 
----
 
+---
 ## 🎯 Key Features
 
 - 📂 File-based persistent storage (`data/*.db`)
@@ -41,8 +33,7 @@ GrainDB 2.0:
 
 ## 🗂️ File Structure
 
-```
-
+````
 GRAIN_DB/
 ├── executor/           # Handles execution logic
 │   └── executor.c
@@ -66,7 +57,8 @@ GRAIN_DB/
 ├── .gitignore          # Ignored files
 └── README.md           # Project overview (this file)
 
-```
+
+````
 
 ---
 
@@ -74,13 +66,13 @@ GRAIN_DB/
 
 Think of GrainDB as a disciplined office:
 
-| Role             | File         | Responsibility |
-|------------------|--------------|----------------|
+| Role             | File         | Responsibility                 |
+| ---------------- | ------------ | ------------------------------ |
 | Reception Desk   | `main.c`     | Handles user input and prompts |
-| Translator       | `parser.c`   | Understands commands |
-| Decision Manager | `executor.c` | Decides execution logic |
-| Store Room       | `storage.c`  | Reads/writes data to files |
-| File Cabinets    | `data/*.db`  | Stores persistent records |
+| Translator       | `parser.c`   | Understands commands           |
+| Decision Manager | `executor.c` | Decides execution logic        |
+| Store Room       | `storage.c`  | Reads/writes data to files     |
+| File Cabinets    | `data/*.db`  | Stores persistent records      |
 
 Each module has **one responsibility only**, ensuring clean separation and maintainability.
 
@@ -88,8 +80,7 @@ Each module has **one responsibility only**, ensuring clean separation and maint
 
 ## 🔁 Execution Flow
 
-```
-
+```text
 User
 ↓
 main.c       → input controller
@@ -105,8 +96,7 @@ executor.c
 main.c
 ↓
 User
-
-````
+```
 
 This defines the **entire engine workflow**.
 
@@ -118,12 +108,12 @@ This defines the **entire engine workflow**.
 
 ```text
 insert students Ali 19
-````
+```
 
 * Automatic ID generation (1, 2, …)
 * Stored as: `1 Ali 19`
 
----
+
 
 ### SELECT
 
@@ -134,7 +124,8 @@ select students where id=1
 
 * Returns records matching the query
 
----
+
+
 
 ### DELETE
 
@@ -142,19 +133,18 @@ select students where id=1
 delete students where id=1
 ```
 
-⚠️ `DELETE` **requires a WHERE clause** to prevent accidental data loss
+⚠️ `DELETE` **requires a WHERE clause** to prevent accidental data loss.
 
 ---
 
 ## 🆘 HELP Command (Built-in Documentation)
 
-GrainDB 2.0 includes a **built-in `HELP` command** that allows users to inspect the supported language features **from inside the engine itself**.
+GrainDB 2.0.1 includes a **built-in `HELP` command** that allows users to inspect the supported language features **from inside the engine itself**.
 
 This command is **read-only** and does **not interact with storage, files, or execution logic**.
 
 It exists purely to **explain the language**.
 
----
 
 ### 🔹 General Help
 
@@ -166,7 +156,7 @@ Displays a list of all supported commands with a brief description.
 
 Conceptual output:
 
-```
+```text
 Supported commands:
   insert   Insert a new row
   select   Retrieve rows
@@ -178,7 +168,7 @@ Type: help <command> for details
 
 Use this when you want a **high-level overview** of the database language.
 
----
+
 
 ### 🔹 Command-Specific Help
 
@@ -204,7 +194,7 @@ help select
 
 Conceptual output:
 
-```
+```text
 Command: SELECT
 
 Syntax:
@@ -217,7 +207,6 @@ Notes:
   Currently supports basic WHERE filtering by ID only.
 ```
 
----
 
 ### 🧠 Design Notes
 
@@ -225,6 +214,8 @@ Notes:
 
   * `help` → general help
   * `help <command>` → command-specific help
+
+
 
 ---
 
@@ -234,12 +225,13 @@ Notes:
 * Example: `data/students.db`
 * Record format: space-separated values
 
-```
+```text
 1 Ali 19
 2 Sara 20
-```
 
+```
 ---
+
 
 ## 💾 Persistence
 
@@ -248,17 +240,9 @@ Notes:
 
 This persistence is the **core feature of any real database engine**.
 
----
-
-## 🚫 What This Project Is NOT
-
-* ❌ Authentication / passwords
-* ❌ Permissions / user roles
-* ❌ Networking / GUI / web layer
-
-These are responsibilities of applications, **not the database engine**.
 
 ---
+
 
 ## ✅ What This Project IS
 
@@ -266,7 +250,9 @@ These are responsibilities of applications, **not the database engine**.
 * A **learning-focused DB core**
 * A foundation for **advanced database features**
 
+
 ---
+
 
 ## 🧪 Build Instructions
 
@@ -288,25 +274,30 @@ gcc main.c parser/parser.c executor/executor.c storage/storage.c utils/help.c -I
 
 > Note: `data/*.db` is ignored in Git. Add your own database files for testing.
 
+<br>
+
 ---
+
 
 ## 📈 Versioning
 
 ### DB 2.0
 
-- Stable `INSERT`, `SELECT`, `DELETE`
-- Automatic ID generation
-- WHERE filtering by ID
-- Modular engine architecture
+* Stable `INSERT`, `SELECT`, `DELETE`
+* Automatic ID generation
+* WHERE filtering by ID
+* Modular engine architecture
 
 ### DB 2.0.1 (Current)
 
-- Added built-in `HELP` command
-- Supports general help (`help`) and command-specific help (`help <commandName>`)
-- Read-only, non-intrusive documentation system
-- Improved internal language introspection
+* Added built-in `HELP` command
+* Supports general help (`help`) and command-specific help (`help <command>`)
+* Read-only, non-intrusive documentation system
+* Improved internal language introspection
 
 ---
+
+
 
 ## 🧠 Core Philosophy
 
@@ -327,8 +318,6 @@ gcc main.c parser/parser.c executor/executor.c storage/storage.c utils/help.c -I
 ---
 
 ## 👤 Author
-
 **Anousha Asadullah**
-
 
 
