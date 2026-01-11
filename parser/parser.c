@@ -25,10 +25,11 @@ It reads a sentence and tells the system what it means, without taking any actio
 #include <stdio.h>
 #include <string.h>
 #include "parser.h"
-#define GREEN   "\033[92m"    // Bright Green 
-#define RED     "\033[91m"    // Bright Red
-#define YELLOW  "\033[93m"    // Bright Yellow
-#define RESET   "\033[0m"
+#include "../include/help.h"
+#define GREEN "\033[92m"  // Bright Green
+#define RED "\033[91m"    // Bright Red
+#define YELLOW "\033[93m" // Bright Yellow
+#define RESET "\033[0m"
 //==========================
 void normalize_expression(char *expr)
 {
@@ -62,6 +63,23 @@ Command parse_command(const char *input)
         cmd.type = CMD_INVALID;
         return cmd;
     }
+    //-------------------------HELP ------------------------
+    if (strcasecmp(token, "help") == 0)
+    {
+        cmd.type = CMD_HELP;
+        // check if specific command help is requested
+        token = strtok(NULL, " "); // next token
+        if (token)
+        {
+            show_command_help(token);
+        }
+        else
+        {
+            show_general_help();
+        }
+        return cmd;
+    }
+
     // ----------------------- INSERT ------------------------
     if (strcasecmp(token, "insert") == 0)
     {

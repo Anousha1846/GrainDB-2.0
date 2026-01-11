@@ -48,6 +48,10 @@ void execute_command(Command cmd)
         printf("[EXECUTOR] Table name is required\n");
         break;
 
+    case CMD_HELP:
+        // do nothing, help already printed
+        break;
+
     case CMD_INVALID:
     printf("[EXECUTOR] Invalid command syntax\n");
     break;

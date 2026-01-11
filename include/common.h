@@ -36,6 +36,7 @@ typedef enum
     CMD_DELETE,
     CMD_EXIT,
     CMD_MISSING_TABLE,  
+    CMD_HELP,
 } CommandType;
 
 typedef struct
