@@ -13,20 +13,26 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h> // for atoi
+#include <stdlib.h>
+#include <direct.h>   // Windows mkdir
 #include "storage.h"
-#define GREEN   "\033[92m"    // Bright Green 
-#define RED     "\033[91m"    // Bright Red
-#define YELLOW  "\033[93m"    // Bright Yellow
+
+#define GREEN   "\033[92m"
+#define RED     "\033[91m"
+#define YELLOW  "\033[93m"
 #define RESET   "\033[0m"
-//============== ID GENETATOR FUNTION ====================
+
+// ============== ENSURE DATA DIRECTORY EXISTS ====================
+static void ensure_data_dir() {
+    _mkdir("data");
+}
+// ============== ID GENERATOR FUNCTION ====================
 int get_next_id(const char *table_name) {
     char file_name[64];
     sprintf(file_name, "data/%s.db", table_name);
 
     FILE *fp = fopen(file_name, "r");
     if (!fp) {
-        // table not found, first row = 1
         return 1;
     }
 
@@ -34,7 +40,6 @@ int get_next_id(const char *table_name) {
     int last_id = 0;
 
     while (fgets(line, sizeof(line), fp)) {
-        // split by space, first token = ID
         char *id_str = strtok(line, " ");
         if (id_str) {
             int id = atoi(id_str);
@@ -43,140 +48,132 @@ int get_next_id(const char *table_name) {
     }
 
     fclose(fp);
-    return last_id + 1; // next ID
-
+    return last_id + 1;
 }
-//------------------------insert----------------------------
+
+// ------------------------ insert ----------------------------
 void storage_insert(Command cmd)
 {
-    // Build the filename based on the table name
+    ensure_data_dir(); // <-- ADDED: create data/ if it doesn't exist
+
     char file_name[64];
     sprintf(file_name, "data/%s.db", cmd.table);
-    // Open file in append mode (a = add to end)
+
     FILE *fp = fopen(file_name, "a");
-    if (!fp)
-    { // error handling
+    if (!fp) {
         printf(RED "[STORAGE] Error opening file for table '%s'\n" RESET, cmd.table);
         return;
     }
-   // figure out the ID
-int id = get_next_id(cmd.table);
-fprintf(fp, "%d %s\n", id, cmd.data);
 
+    int id = get_next_id(cmd.table);
+    fprintf(fp, "%d %s\n", id, cmd.data);
 
-fclose(fp);
-printf(GREEN "[STORAGE] Inserted into table '%s' with ID %d\n" RESET, cmd.table, id);
-
+    fclose(fp);
+    printf(GREEN "[STORAGE] Inserted into table '%s' with ID %d\n" RESET, cmd.table, id);
 }
 
-//------------------------ select --------------------
+// ------------------------ select ----------------------------
 void storage_select(Command cmd)
 {
-    // Build the filename based on the table name
     char file_name[64];
-    sprintf(file_name, "data/%s.db", cmd.table); 
-    // Open file in read-only mode (r)
+    sprintf(file_name, "data/%s.db", cmd.table);
+
     FILE *fp = fopen(file_name, "r");
-    
-    if (!fp)
-    { // error handling
+    if (!fp) {
         printf(RED "[STORAGE] Table '%s' not found\n" RESET, cmd.table);
         return;
     }
-    // Buffer to store each line while reading
+
     char line[256];
     int found = 0;
+    int total_rows = 0;  // <-- ADDED
+
     printf(GREEN "[STORAGE] Records from '%s':\n" RESET, cmd.table);
+
     while (fgets(line, sizeof(line), fp))
     {
-        if (!cmd.has_where) // No WHERE → print everything
-        {
-           printf("%s", line);
-           found = 1;
-           continue;
+        total_rows++;  // <-- ADDED: count every row regardless of WHERE
+
+        if (!cmd.has_where) {
+            printf("%s", line);
+            found = 1;
+            continue;
         }
-        // WHERE exists → check column 0 (ID)
+
         char row_copy[256];
         strcpy(row_copy, line);
 
         char *value = strtok(row_copy, " ");
-
-        if (value && strcmp(value,cmd.where_value)==0)
-        {
-           printf("%s", line);
-           found = 1;
+        if (value && strcmp(value, cmd.where_value) == 0) {
+            printf("%s", line);
+            found = 1;
         }
     }
-    if (!found)
-    {
-        printf(RED "[STORAGE] No matching records found\n" RESET);
+
+    if (!found) {
+        if (total_rows == 0)
+            printf(YELLOW "[STORAGE] Table '%s' is empty\n" RESET, cmd.table);  // <-- ADDED
+        else
+            printf(RED "[STORAGE] No matching records found\n" RESET);
     }
-    
-    fclose(fp); // Close the file to save changes
+
+    fclose(fp);
 }
 
-//----------------- delete [ row-specific]-------------------------
+// ----------------- delete [row-specific] -------------------------
 void storage_delete(Command cmd)
 {
-     // Check if WHERE condition exists
-    if (!cmd.has_where)
-    {
-        printf(RED "[STORAGE] For DELETE : WHERE condition is required.\n" RESET);
+    if (!cmd.has_where) {
+        printf(RED "[STORAGE] For DELETE: WHERE condition is required.\n" RESET);
         return;
     }
-    // Build the filename based on the table name
+
     char file_name[64], temp_name[64];
     sprintf(file_name, "data/%s.db", cmd.table);
     sprintf(temp_name, "data/%s_temp.db", cmd.table);
 
     FILE *fp = fopen(file_name, "r");
-    if (!fp)
-    {
+    if (!fp) {
         printf(RED "[STORAGE] Table '%s' not found\n" RESET, cmd.table);
         return;
     }
+
     FILE *temp_fp = fopen(temp_name, "w");
-    if (!temp_fp)
-    {
+    if (!temp_fp) {
         printf(RED "[STORAGE] Temp file error\n" RESET);
         fclose(fp);
         return;
     }
-    //process rows
+
     char line[256];
     int deleted_count = 0;
 
     while (fgets(line, sizeof(line), fp))
     {
-       line[strcspn(line, "\n")] = 0; //remove newline
+        line[strcspn(line, "\n")] = 0;
 
-       // split row into fields (assuming space-separated)
         char row_copy[256];
         strcpy(row_copy, line);
 
-        char *field_token = strtok(row_copy, " "); //first field=id
+        char *field_token = strtok(row_copy, " ");
         int match = 0;
 
-        if (field_token != NULL && strcasecmp(cmd.where_column, "id")==0)
-        {
-            
-           if (strcmp(field_token, cmd.where_value)==0)
-           {
-            match = 1; //ye row ho jaegi delete, insha allah
-           }
+        if (field_token != NULL && strcasecmp(cmd.where_column, "id") == 0) {
+            if (strcmp(field_token, cmd.where_value) == 0) {
+                match = 1;
+            }
         }
-        if (!match)
-        {
-            fprintf(temp_fp, "%s\n", line); //row is kept heree
-        }else{
+
+        if (!match) {
+            fprintf(temp_fp, "%s\n", line);
+        } else {
             deleted_count++;
         }
     }
-    
+
     fclose(fp);
     fclose(temp_fp);
 
-    // Replace original file with temp file
     remove(file_name);
     rename(temp_name, file_name);
 

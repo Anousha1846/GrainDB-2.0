@@ -104,7 +104,7 @@ Command parse_command(const char *input)
         if (strlen(cmd.data) == 0)
         {
             printf(RED "[PARSER] Row data is required for INSERT\n" RESET);
-            // cmd.type = CMD_INVALID; // prevent krega execution
+            cmd.type = CMD_INVALID; // prevent krega execution
             return cmd;
         }
     }
